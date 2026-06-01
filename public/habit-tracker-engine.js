@@ -215,6 +215,32 @@ function setupEventListeners() {
         renderHabitWheel(); // redraw filled print SVG
         window.print();
     });
+
+    // Tactile Floating Context Menu click handlers
+    const contextMenu = document.getElementById("wedge-context-menu");
+    if (contextMenu) {
+        contextMenu.querySelectorAll(".context-btn-item").forEach(btn => {
+            btn.addEventListener("click", () => {
+                if (!activeWedgeInfo) return;
+                const { dayKey, habitId } = activeWedgeInfo;
+                const status = btn.getAttribute("data-status");
+                const logKey = `${dayKey}-${habitId}`;
+
+                if (status === "clear") {
+                    delete state.logs[logKey];
+                } else {
+                    state.logs[logKey] = status;
+                }
+
+                saveToLocalStorage();
+                renderApp();
+
+                // Close context menu
+                contextMenu.style.display = "none";
+                contextMenu.classList.remove("active");
+            });
+        });
+    }
 }
 
 // Update Theme Icons visually
@@ -575,30 +601,11 @@ function renderHabitWheel() {
                 }
             }
 
-            // Click handling to toggle habit completion
-            wedge.addEventListener("click", () => {
+            // Click handling to open our gorgeous tactile floating context menu
+            wedge.addEventListener("click", (event) => {
                 if (isPrinting) return;
-                let nextState;
-                if (!logState) {
-                    nextState = "done";
-                } else if (logState === "done") {
-                    nextState = "partial";
-                } else if (logState === "partial") {
-                    nextState = "not-done";
-                } else if (logState === "not-done") {
-                    nextState = "exempt";
-                } else {
-                    nextState = undefined;
-                }
-
-                if (nextState) {
-                    state.logs[logKey] = nextState;
-                } else {
-                    delete state.logs[logKey];
-                }
-
-                saveToLocalStorage();
-                renderApp();
+                event.stopPropagation(); // prevent immediate click-away close
+                openWedgeContextMenu(event, dayKey, habit.id, logState);
             });
 
             svg.appendChild(wedge);
@@ -807,6 +814,60 @@ function calculateLongestActiveStreak() {
     });
 
     return Math.max(longest, current);
+}
+
+// Active logging state pointer
+let activeWedgeInfo = null;
+
+// Opens context menu positioned perfectly next to finger/cursor
+function openWedgeContextMenu(event, dayKey, habitId, currentStatus) {
+    const menu = document.getElementById("wedge-context-menu");
+    if (!menu) return;
+
+    activeWedgeInfo = { dayKey, habitId };
+
+    // Highlight current status actively
+    menu.querySelectorAll(".context-btn-item").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.getAttribute("data-status") === (currentStatus || "clear")) {
+            btn.classList.add("active");
+        }
+    });
+
+    // Display it to calculate dimensions
+    menu.style.display = "flex";
+    
+    // Defer height reading for dynamic alignment
+    setTimeout(() => {
+        menu.classList.add("active");
+        
+        const menuWidth = menu.offsetWidth || 230;
+        const menuHeight = menu.offsetHeight || 50;
+
+        let left = event.pageX - (menuWidth / 2);
+        let top = event.pageY - menuHeight - 16; // 16px above touch position
+
+        // Boundaries check
+        if (left < 10) left = 10;
+        if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+        if (top < 10) top = event.pageY + 16; // flip below if overflows top
+
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+    }, 0);
+
+    // Click outside hook to automatically close
+    const closeHandler = (e) => {
+        if (!menu.contains(e.target)) {
+            menu.style.display = "none";
+            menu.classList.remove("active");
+            document.removeEventListener("click", closeHandler);
+        }
+    };
+
+    setTimeout(() => {
+        document.addEventListener("click", closeHandler);
+    }, 60);
 }
 
 // Export a reload global handle for React integration

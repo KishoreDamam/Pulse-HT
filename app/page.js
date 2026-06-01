@@ -576,6 +576,26 @@ export default function HabitTrackerPage() {
           </div>
         </div>
 
+        {/* Floating context menu for tactile logging */}
+        <div id="wedge-context-menu" className="glass-card floating-context-menu" style={{ display: 'none' }}>
+          <button className="context-btn-item btn-done" data-status="done" title="Done">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button className="context-btn-item btn-partial" data-status="partial" title="Partial">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </button>
+          <button className="context-btn-item btn-not-done" data-status="not-done" title="Not Done">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+          </button>
+          <button className="context-btn-item btn-exempt" data-status="exempt" title="Exempt">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/></svg>
+          </button>
+          <div className="context-divider"></div>
+          <button className="context-btn-item btn-clear" data-status="clear" title="Clear State">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          </button>
+        </div>
+
         {/* Color Picker Grid Popup */}
         <div className="color-picker-grid" id="picker-popup">
           {/* Filled by JS */}
