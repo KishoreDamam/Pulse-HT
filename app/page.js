@@ -489,11 +489,8 @@ export default function HabitTrackerPage() {
             </div>
 
             {/* Quote Settings Card */}
-            <div className="glass-card quote-section">
+            <div className="glass-card quote-section" style={{ padding: '2.2rem 1.5rem' }}>
               <div className="quote-text" id="quote-display">Discipline equals freedom.</div>
-              <div className="quote-input-wrapper">
-                <input type="text" id="quote-input" placeholder="Type a custom quote..." style={{ width: '100%', textAlign: 'center' }} defaultValue="Discipline equals freedom." />
-              </div>
             </div>
           </section>
         </main>

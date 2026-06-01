@@ -9,6 +9,41 @@ const state = {
     theme: "dark"
 };
 
+// Dynamic Daily Discipline Quotes (31 quotes, one for each day of the month)
+const DISCIPLINE_QUOTES = [
+    "Discipline equals freedom. — Jocko Willink",
+    "He who overcomes himself is the mightiest warrior. — Lao Tzu",
+    "We are what we repeatedly do. Excellence, then, is not an act, but a habit. — Aristotle",
+    "First we make our habits, then our habits make us. — John Dryden",
+    "The successful warrior is the average man, with laser-like focus. — Bruce Lee",
+    "Self-discipline is the master key to riches. — Napoleon Hill",
+    "It is not that we have a short time to live, but that we waste a lot of it. — Seneca",
+    "You have power over your mind - not outside events. Realize this, and you will find strength. — Marcus Aurelius",
+    "Discipline is the bridge between goals and accomplishment. — Jim Rohn",
+    "The only bad workout is the one that didn't happen. — Unknown",
+    "He who has a why to live can bear almost any how. — Friedrich Nietzsche",
+    "Don't count the days, make the days count. — Muhammad Ali",
+    "Discipline is choosing between what you want now and what you want most. — Abraham Lincoln",
+    "We must all suffer one of two things: the pain of discipline or the pain of regret. — Jim Rohn",
+    "It never gets easier, you just get better. — Greg LeMond",
+    "Suffering is the true test of life. — David Goggins",
+    "The secret of getting ahead is getting started. — Mark Twain",
+    "If you do not master self-discipline, you will master nothing. — Napoleon Hill",
+    "The best revenge is to be unlike him who performed the injury. — Marcus Aurelius",
+    "Conquer yourself rather than the world. — René Descartes",
+    "Discipline is the soul of an army. It makes small numbers formidable. — George Washington",
+    "You must do the things you think you cannot do. — Eleanor Roosevelt",
+    "A disciplined mind leads to happiness, and an undisciplined mind leads to suffering. — Buddha",
+    "Great things are done by a series of small things brought together. — Vincent Van Gogh",
+    "The price of excellence is discipline. The cost of mediocrity is disappointment. — William Arthur Ward",
+    "The critical ingredient is getting off your butt and doing something. — Nolan Bushnell",
+    "Success is nothing more than a few simple disciplines, practiced every day. — Jim Rohn",
+    "The master has failed more times than the beginner has even tried. — Stephen McCranie",
+    "Action is the foundational key to all success. — Pablo Picasso",
+    "You do not rise to the level of your goals. You fall to the level of your systems. — James Clear",
+    "Discipline is the standard. Freedom is the reward. — Jocko Willink"
+];
+
 // Preset colors (Gradients and solid hexes)
 const COLOR_PRESETS = [
     { id: 1, name: "Sunset Orange", solid: "#ff6b6b" },
@@ -135,8 +170,22 @@ function setupEventListeners() {
             alert("You have reached the maximum limit of 10 habits to maintain a beautiful, readable layout.");
             return;
         }
+
+        // Find the first color index from 1 to 10 that is NOT currently used by any active habit
+        const usedColors = state.habits.map(h => h.colorIndex);
+        let nextColorIndex = 1;
+        for (let c = 1; c <= 10; c++) {
+            if (!usedColors.includes(c)) {
+                nextColorIndex = c;
+                break;
+            }
+        }
+        // If all 10 colors are already in use, default to safe rotation cycling
+        if (usedColors.includes(nextColorIndex)) {
+            nextColorIndex = (state.habits.length % 10) + 1;
+        }
+
         const newId = "h" + Date.now();
-        const nextColorIndex = (state.habits.length % 10) + 1;
         state.habits.push({
             id: newId,
             name: `Habit ${state.habits.length + 1}`,
@@ -145,15 +194,6 @@ function setupEventListeners() {
         });
         saveToLocalStorage();
         renderApp();
-    });
-
-    // Quote Inputs
-    const quoteInput = document.getElementById("quote-input");
-    quoteInput.addEventListener("input", (e) => {
-        state.quote = e.target.value;
-        document.getElementById("quote-display").innerText = state.quote;
-        document.getElementById("print-quote-block").innerText = `"${state.quote}"`;
-        saveToLocalStorage();
     });
 
     // Modal Events
@@ -288,9 +328,14 @@ function renderHeaders() {
     document.getElementById("month-display").innerText = `${monthStr} ${yearStr}`;
     document.getElementById("wheel-center-month-label").innerText = monthStr.substring(0, 3).toUpperCase();
     document.getElementById("wheel-center-year-label").innerText = yearStr;
-    document.getElementById("quote-display").innerText = state.quote;
-    document.getElementById("quote-input").value = state.quote;
-    document.getElementById("print-quote-block").innerText = `"${state.quote}"`;
+
+    // Dynamically select quote based on real-world day of month (1 to 31)
+    const realDayOfMonth = new Date().getDate(); // 1 to 31
+    const dailyQuote = DISCIPLINE_QUOTES[realDayOfMonth - 1] || DISCIPLINE_QUOTES[0];
+    state.quote = dailyQuote;
+    
+    document.getElementById("quote-display").innerText = dailyQuote;
+    document.getElementById("print-quote-block").innerText = `"${dailyQuote}"`;
 }
 
 // Render Left Panel inputs and color triggers
@@ -347,6 +392,15 @@ function renderHabitPanel() {
         delBtn.style.padding = "2px 6px";
         delBtn.style.fontSize = "0.75rem";
         delBtn.style.borderRadius = "50%";
+
+        // Delete button only appears once the user has logged/updated any status for this habit
+        const hasLogs = Object.keys(state.logs).some(key => key.endsWith(`-${habit.id}`));
+        if (hasLogs) {
+            delBtn.style.display = "inline-flex";
+        } else {
+            delBtn.style.display = "none";
+        }
+
         delBtn.addEventListener("click", () => {
             if (state.habits.length <= 1) {
                 alert("You need to keep at least one habit to track!");
