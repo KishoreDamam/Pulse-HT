@@ -229,7 +229,7 @@ main {
     margin: 0 auto;
 }
 
-@media (max-width: 1400px) {
+@media screen and (max-width: 1400px) {
     main {
         grid-template-columns: 320px 1fr;
         grid-template-rows: auto auto;
@@ -239,7 +239,7 @@ main {
     }
 }
 
-@media (max-width: 1024px) {
+@media screen and (max-width: 1024px) {
     main {
         grid-template-columns: 1fr;
         padding: 1rem;
@@ -1586,7 +1586,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 }
 
 /* Responsiveness break point for Tablets and Mobiles */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
     body {
         padding-bottom: 74px; /* Space for sticky bottom tab bar */
     }
@@ -1737,7 +1737,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 }
 
 /* Tiny mobile viewport enhancements */
-@media (max-width: 380px) {
+@media screen and (max-width: 380px) {
     .wheel-container {
         max-width: 320px;
     }
