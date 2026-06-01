@@ -393,14 +393,7 @@ function renderHabitPanel() {
         delBtn.style.padding = "2px 6px";
         delBtn.style.fontSize = "0.75rem";
         delBtn.style.borderRadius = "50%";
-
-        // Delete button only appears once the user has logged/updated any status for this habit
-        const hasLogs = Object.keys(state.logs).some(key => key.endsWith(`-${habit.id}`));
-        if (hasLogs) {
-            delBtn.style.display = "inline-flex";
-        } else {
-            delBtn.style.display = "none";
-        }
+        delBtn.style.display = "inline-flex"; // Always show delete button so users can delete any habit at any time
 
         delBtn.addEventListener("click", () => {
             if (state.habits.length <= 1) {

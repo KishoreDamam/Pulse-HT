@@ -1892,3 +1892,14 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     background: rgba(0, 0, 0, 0.1);
 }
 
+/* Elegant Hover Fade-In for Legend Habit Delete Buttons */
+.habit-item .btn-danger {
+    opacity: 0.15;
+    transition: opacity var(--transition-fast) !important;
+}
+.habit-item:hover .btn-danger,
+.habit-item .btn-danger:hover {
+    opacity: 1;
+}
+
+
