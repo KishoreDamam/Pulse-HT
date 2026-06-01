@@ -206,14 +206,28 @@ function setupEventListeners() {
         document.body.removeAttribute("data-print-mode");
         document.body.setAttribute("data-print-mode", "blank");
         renderHabitWheel(); // redraw print blank SVG
-        window.print();
+        
+        // Defer 150ms to allow SVGs to re-render in print colors before dialog opens
+        setTimeout(() => {
+            window.print();
+        }, 150);
     });
 
     document.getElementById("print-filled-btn").addEventListener("click", () => {
         document.body.removeAttribute("data-print-mode");
         document.body.setAttribute("data-print-mode", "filled");
         renderHabitWheel(); // redraw filled print SVG
-        window.print();
+        
+        // Defer 150ms to allow SVGs to re-render in print colors before dialog opens
+        setTimeout(() => {
+            window.print();
+        }, 150);
+    });
+
+    // Clean up print mode dynamically once user finishes or cancels printing
+    window.addEventListener("afterprint", () => {
+        document.body.removeAttribute("data-print-mode");
+        renderApp();
     });
 
     // Tactile Floating Context Menu click handlers
