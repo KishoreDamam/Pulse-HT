@@ -367,6 +367,7 @@ function renderHabitPanel() {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "habit-input";
+        input.maxLength = 30; // Limit to 30 characters to maintain clean visual alignments
         input.value = habit.name;
         input.placeholder = `Habit ${idx + 1}`;
         input.addEventListener("input", (e) => {
