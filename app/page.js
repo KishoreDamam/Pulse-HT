@@ -440,7 +440,6 @@ export default function HabitTrackerPage() {
               <div className="metric-guide-item"><span className="metric-dot partial-dot"></span>Partial</div>
               <div className="metric-guide-item"><span className="metric-dot not-done-dot"></span>Not Done</div>
               <div className="metric-guide-item"><span className="metric-dot exempt-dot"></span>Exempt</div>
-              <div className="metric-guide-item info-tip">Click wedges to cycle status</div>
             </div>
           </section>
 
