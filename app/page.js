@@ -15,6 +15,10 @@ export default function HabitTrackerPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [formSubmitting, setFormSubmitting] = useState(false);
 
+  // Mobile Responsiveness Tab & Drawer states
+  const [activeTab, setActiveTab] = useState('wheel'); // 'habits' | 'wheel' | 'stats'
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Check auth state and register Service Worker on mount
   useEffect(() => {
     // 1. Service Worker Registration
@@ -74,6 +78,19 @@ export default function HabitTrackerPage() {
       console.log('Habit tracker engine script successfully loaded.');
     };
     document.body.appendChild(script);
+  };
+
+  // Trigger click events on background native action elements
+  const triggerBackupClick = () => {
+    document.getElementById('backup-btn')?.click();
+  };
+  
+  const triggerPrintBlankClick = () => {
+    document.getElementById('print-blank-btn')?.click();
+  };
+  
+  const triggerPrintFilledClick = () => {
+    document.getElementById('print-filled-btn')?.click();
   };
 
   // Handle Login submission
@@ -371,12 +388,22 @@ export default function HabitTrackerPage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
               Print Filled
             </button>
+
+            {/* Mobile Actions Menu Trigger Button */}
+            <button 
+              className="btn btn-secondary btn-icon btn-mobile-menu" 
+              title="Menu"
+              onClick={() => setIsMobileMenuOpen(true)}
+              style={{ display: 'none' }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
           </div>
         </header>
 
         <main>
-          {/* Left Sidebar: Habit Management */}
-          <section className="left-sidebar glass-card" id="habit-panel">
+          {/* Left Sidebar: Habit Management (Legend) */}
+          <section className={`left-sidebar glass-card ${activeTab === 'habits' ? 'tab-active' : ''}`} id="habit-panel">
             <div className="panel-header">
               <h2 className="panel-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -392,7 +419,7 @@ export default function HabitTrackerPage() {
           </section>
 
           {/* Center Workspace: Interactive SVG Wheel */}
-          <section className="center-canvas">
+          <section className={`center-canvas ${activeTab === 'wheel' ? 'tab-active' : ''}`}>
             <div className="wheel-container">
               <svg className="habit-wheel" id="habit-wheel-svg" viewBox="-300 -300 600 600">
                 {/* Concentric circles and wedges drawn dynamically */}
@@ -418,7 +445,7 @@ export default function HabitTrackerPage() {
           </section>
 
           {/* Right Sidebar: Analytics & Quotes */}
-          <section className="right-sidebar">
+          <section className={`right-sidebar ${activeTab === 'stats' ? 'tab-active' : ''}`}>
             <div className="glass-card">
               <div className="panel-header">
                 <h2 className="panel-title">
@@ -473,6 +500,59 @@ export default function HabitTrackerPage() {
 
         {/* Printable Quote Block */}
         <div className="print-quote" id="print-quote-block">"Discipline equals freedom."</div>
+
+        {/* Mobile Tab Navigation Bar */}
+        <nav className="mobile-tab-bar">
+          <button 
+            className={`tab-item ${activeTab === 'habits' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('habits')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            <span>Habits</span>
+          </button>
+          
+          <button 
+            className={`tab-item ${activeTab === 'wheel' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('wheel')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.9 2.9-1.1-1.1 4-4"/><circle cx="12" cy="12" r="6"/></svg>
+            <span>Wheel</span>
+          </button>
+          
+          <button 
+            className={`tab-item ${activeTab === 'stats' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('stats')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+            <span>Analytics</span>
+          </button>
+        </nav>
+
+        {/* Mobile menu bottom action drawer */}
+        {isMobileMenuOpen && (
+          <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
+            <div className="mobile-menu-card glass-card" onClick={(e) => e.stopPropagation()}>
+              <div className="mobile-menu-header">
+                <h3>Quick Actions</h3>
+                <button className="mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)}>&times;</button>
+              </div>
+              <div className="mobile-menu-body">
+                <button className="btn btn-secondary" onClick={() => { setIsMobileMenuOpen(false); triggerBackupClick(); }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                  Backup & Restore Logs
+                </button>
+                <button className="btn btn-secondary" onClick={() => { setIsMobileMenuOpen(false); triggerPrintBlankClick(); }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><rect width="12" height="8" x="6" y="14"/></svg>
+                  Print Blank Template
+                </button>
+                <button className="btn btn-primary" onClick={() => { setIsMobileMenuOpen(false); triggerPrintFilledClick(); }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><rect width="12" height="8" x="6" y="14"/></svg>
+                  Print Pre-Filled Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Backup Modal */}
         <div className="modal-backdrop" id="backup-modal">
