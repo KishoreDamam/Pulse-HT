@@ -433,6 +433,7 @@ svg.habit-wheel {
     cursor: pointer;
     transition: opacity var(--transition-fast), filter var(--transition-fast);
     stroke-linejoin: round;
+    touch-action: none;
 }
 
 .wheel-wedge.completed {

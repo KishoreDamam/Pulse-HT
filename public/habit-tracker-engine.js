@@ -60,6 +60,11 @@ const COLOR_PRESETS = [
 
 // Debounce helper for background database synchronization
 let syncTimeout = null;
+
+// Drag-to-fill state: painting a habit's existing status across the wedges dragged over
+let wedgeDragOrigin = null; // { habitId, status }
+let wedgeDragMoved = false;
+let wedgeDragTouched = null; // Map<logKey, status>, collected during the drag and committed on release
 function triggerCloudSync() {
     if (syncTimeout) clearTimeout(syncTimeout);
     syncTimeout = setTimeout(async () => {
@@ -347,6 +352,67 @@ function setupEventListeners() {
             });
         });
     }
+
+    // Drag-to-fill: press on a wedge that already has a status, then drag across
+    // other days in the same habit's ring to paint them with that same status.
+    const wheelSvg = document.getElementById("habit-wheel-svg");
+    if (wheelSvg) {
+        wheelSvg.addEventListener("pointerdown", (event) => {
+            if (document.body.hasAttribute("data-print-mode")) return;
+            const wedgeEl = event.target.closest(".wheel-wedge");
+            if (!wedgeEl) return;
+
+            const { habitId, dayKey } = wedgeEl.dataset;
+            const status = state.logs[`${dayKey}-${habitId}`];
+            if (!status) return; // Nothing to propagate from an empty day
+
+            wedgeDragOrigin = { habitId, status };
+            wedgeDragMoved = false;
+            wedgeDragTouched = new Map();
+
+            // Touch input implicitly captures the pointer to this wedge; release it so
+            // pointermove keeps reporting whichever wedge is actually under the finger.
+            try {
+                if (wedgeEl.hasPointerCapture && wedgeEl.hasPointerCapture(event.pointerId)) {
+                    wedgeEl.releasePointerCapture(event.pointerId);
+                }
+            } catch (e) { /* no-op: capture release is best-effort */ }
+        });
+
+        wheelSvg.addEventListener("pointermove", (event) => {
+            if (!wedgeDragOrigin) return;
+
+            const target = document.elementFromPoint(event.clientX, event.clientY);
+            const wedgeEl = target && target.closest && target.closest(".wheel-wedge");
+            if (!wedgeEl || wedgeEl.dataset.habitId !== wedgeDragOrigin.habitId) return;
+
+            const logKey = `${wedgeEl.dataset.dayKey}-${wedgeEl.dataset.habitId}`;
+            if (wedgeDragTouched.has(logKey)) return;
+
+            wedgeDragMoved = true;
+            wedgeDragTouched.set(logKey, wedgeDragOrigin.status);
+            styleWedgeForStatus(wedgeEl, wedgeDragOrigin.status);
+        });
+
+        const endWedgeDrag = () => {
+            if (!wedgeDragOrigin) return;
+
+            if (wedgeDragMoved && wedgeDragTouched.size > 0) {
+                wedgeDragTouched.forEach((status, logKey) => {
+                    state.logs[logKey] = status;
+                });
+                saveToLocalStorage();
+                renderApp();
+            }
+
+            wedgeDragOrigin = null;
+            wedgeDragMoved = false;
+            wedgeDragTouched = null;
+        };
+
+        document.addEventListener("pointerup", endWedgeDrag);
+        document.addEventListener("pointercancel", endWedgeDrag);
+    }
 }
 
 // Update Theme Icons visually
@@ -588,6 +654,30 @@ function getDaysInMonth(date) {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 }
 
+// Apply the visual fill/glow for a given log status onto a wedge (non-printing view only)
+function styleWedgeForStatus(wedge, logState) {
+    wedge.setAttribute("class", `wheel-wedge ${logState ? "completed wedge-" + logState : ""}`);
+
+    if (logState === "done") {
+        wedge.style.fill = "#51cf66"; // Green
+        wedge.style.setProperty("--glow-color", "#51cf66");
+    } else if (logState === "partial") {
+        wedge.style.fill = "#ffd43b"; // Yellow
+        wedge.style.setProperty("--glow-color", "#ffd43b");
+    } else if (logState === "not-done") {
+        wedge.style.fill = "#ff6b6b"; // Red
+        wedge.style.setProperty("--glow-color", "#ff6b6b");
+    } else if (logState === "exempt") {
+        wedge.style.fill = "#adb5bd"; // Grey
+        wedge.style.setProperty("--glow-color", "#adb5bd");
+    } else {
+        wedge.style.fill = "var(--wheel-bg-inactive)";
+        wedge.style.stroke = "var(--wheel-stroke-inactive)";
+        wedge.style.strokeWidth = "0.5px";
+        wedge.style.setProperty("--glow-color", "transparent");
+    }
+}
+
 // Render the Interactive SVG Wheel
 function renderHabitWheel() {
     const svg = document.getElementById("habit-wheel-svg");
@@ -683,36 +773,22 @@ function renderHabitWheel() {
             const logKey = `${dayKey}-${habit.id}`;
             const logState = state.logs[logKey]; // undefined, "done", "partial", "not-done", "exempt"
 
+            wedge.dataset.dayKey = dayKey;
+            wedge.dataset.habitId = habit.id;
+
             wedge.setAttribute("class", `wheel-wedge ${logState ? "completed wedge-" + logState : ""}`);
-            
+
             if (isPrinting) {
                 wedge.style.fill = "none";
                 wedge.style.stroke = "#000";
                 wedge.style.strokeWidth = "1px";
-                
+
                 // If printing pre-filled tracker, color the wedge appropriately!
                 if (!isPrintBlank && logState) {
                     wedge.setAttribute("class", `wheel-wedge completed wedge-${logState}`);
                 }
             } else {
-                if (logState === "done") {
-                    wedge.style.fill = "#51cf66"; // Green
-                    wedge.style.setProperty("--glow-color", "#51cf66");
-                } else if (logState === "partial") {
-                    wedge.style.fill = "#ffd43b"; // Yellow
-                    wedge.style.setProperty("--glow-color", "#ffd43b");
-                } else if (logState === "not-done") {
-                    wedge.style.fill = "#ff6b6b"; // Red
-                    wedge.style.setProperty("--glow-color", "#ff6b6b");
-                } else if (logState === "exempt") {
-                    wedge.style.fill = "#adb5bd"; // Grey
-                    wedge.style.setProperty("--glow-color", "#adb5bd");
-                } else {
-                    wedge.style.fill = "var(--wheel-bg-inactive)";
-                    wedge.style.stroke = "var(--wheel-stroke-inactive)";
-                    wedge.style.strokeWidth = "0.5px";
-                    wedge.style.setProperty("--glow-color", "transparent");
-                }
+                styleWedgeForStatus(wedge, logState);
             }
 
             // Click handling to open our gorgeous tactile floating context menu
