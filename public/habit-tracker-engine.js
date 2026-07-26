@@ -353,8 +353,10 @@ function setupEventListeners() {
         });
     }
 
-    // Drag-to-fill: press on a wedge that already has a status, then drag across
-    // other days in the same habit's ring to paint them with that same status.
+    // Drag-to-fill: press on a wedge, then drag across other days in the same
+    // habit's ring to copy that same status onto them. Dragging from a wedge that
+    // already has a status paints it; dragging from an empty wedge erases instead
+    // (mirrors the "Clear" option in the tap context menu).
     const wheelSvg = document.getElementById("habit-wheel-svg");
     if (wheelSvg) {
         wheelSvg.addEventListener("pointerdown", (event) => {
@@ -363,8 +365,7 @@ function setupEventListeners() {
             if (!wedgeEl) return;
 
             const { habitId, dayKey } = wedgeEl.dataset;
-            const status = state.logs[`${dayKey}-${habitId}`];
-            if (!status) return; // Nothing to propagate from an empty day
+            const status = state.logs[`${dayKey}-${habitId}`] || "clear";
 
             wedgeDragOrigin = { habitId, status };
             wedgeDragMoved = false;
@@ -391,7 +392,7 @@ function setupEventListeners() {
 
             wedgeDragMoved = true;
             wedgeDragTouched.set(logKey, wedgeDragOrigin.status);
-            styleWedgeForStatus(wedgeEl, wedgeDragOrigin.status);
+            styleWedgeForStatus(wedgeEl, wedgeDragOrigin.status === "clear" ? undefined : wedgeDragOrigin.status);
         });
 
         const endWedgeDrag = () => {
@@ -399,7 +400,11 @@ function setupEventListeners() {
 
             if (wedgeDragMoved && wedgeDragTouched.size > 0) {
                 wedgeDragTouched.forEach((status, logKey) => {
-                    state.logs[logKey] = status;
+                    if (status === "clear") {
+                        delete state.logs[logKey];
+                    } else {
+                        state.logs[logKey] = status;
+                    }
                 });
                 saveToLocalStorage();
                 renderApp();
