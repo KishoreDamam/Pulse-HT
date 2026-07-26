@@ -84,6 +84,10 @@ export default function HabitTrackerPage() {
   const triggerBackupClick = () => {
     document.getElementById('backup-btn')?.click();
   };
+
+  const triggerBulkUpdateClick = () => {
+    document.getElementById('bulk-update-btn')?.click();
+  };
   
   const triggerPrintBlankClick = () => {
     document.getElementById('print-blank-btn')?.click();
@@ -373,6 +377,12 @@ export default function HabitTrackerPage() {
               <svg className="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
             </button>
 
+            {/* Bulk Update Utilities */}
+            <button className="btn btn-secondary" id="bulk-update-btn" title="Bulk Update multiple days at once">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+              Bulk Update
+            </button>
+
             {/* Backup Utilities */}
             <button className="btn btn-secondary" id="backup-btn" title="Import/Export Backup">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
@@ -533,6 +543,10 @@ export default function HabitTrackerPage() {
                 <button className="mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)}>&times;</button>
               </div>
               <div className="mobile-menu-body">
+                <button className="btn btn-secondary" onClick={() => { setIsMobileMenuOpen(false); triggerBulkUpdateClick(); }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+                  Bulk Update
+                </button>
                 <button className="btn btn-secondary" onClick={() => { setIsMobileMenuOpen(false); triggerBackupClick(); }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                   Backup & Restore Logs
@@ -568,6 +582,51 @@ export default function HabitTrackerPage() {
                 <input type="text" id="import-input" placeholder="Paste data here and press Import..." style={{ fontSize: '0.8rem' }} />
                 <button className="btn btn-primary btn-sm" id="import-btn">Import Data</button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bulk Update Modal */}
+        <div className="modal-backdrop" id="bulk-update-modal">
+          <div className="modal-card glass-card">
+            <div className="modal-header">
+              <h3 className="modal-title">Bulk Update Days</h3>
+              <button className="modal-close" id="bulk-modal-close-btn">&times;</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                Set the same status across a run of days in one go, e.g. logging 5 days at once.
+              </p>
+
+              <div className="auth-field" style={{ marginBottom: '0.9rem' }}>
+                <label className="auth-label" htmlFor="bulk-habit-select">HABIT</label>
+                <select id="bulk-habit-select"></select>
+              </div>
+
+              <div className="auth-field" style={{ marginBottom: '0.9rem' }}>
+                <label className="auth-label" htmlFor="bulk-status-select">STATUS</label>
+                <select id="bulk-status-select">
+                  <option value="done">Done</option>
+                  <option value="partial">Partial</option>
+                  <option value="not-done">Not Done</option>
+                  <option value="exempt">Exempt</option>
+                  <option value="clear">Clear</option>
+                </select>
+              </div>
+
+              <div className="auth-field" style={{ marginBottom: '0.9rem' }}>
+                <label className="auth-label" htmlFor="bulk-start-date">START DATE</label>
+                <input type="date" id="bulk-start-date" />
+              </div>
+
+              <div className="auth-field">
+                <label className="auth-label" htmlFor="bulk-days-count">NUMBER OF DAYS</label>
+                <input type="number" id="bulk-days-count" min="1" max="31" defaultValue="5" />
+              </div>
+
+              <button className="btn btn-primary btn-sm" id="bulk-apply-btn" style={{ marginTop: '1.25rem', width: '100%' }}>
+                Apply to All Days
+              </button>
             </div>
           </div>
         </div>

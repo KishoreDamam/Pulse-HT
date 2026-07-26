@@ -196,6 +196,58 @@ function setupEventListeners() {
         renderApp();
     });
 
+    // Bulk Update Modal Events
+    const bulkModal = document.getElementById("bulk-update-modal");
+    document.getElementById("bulk-update-btn").addEventListener("click", () => {
+        const habitSelect = document.getElementById("bulk-habit-select");
+        habitSelect.innerHTML = "";
+        state.habits.forEach(habit => {
+            const opt = document.createElement("option");
+            opt.value = habit.id;
+            opt.innerText = habit.name;
+            habitSelect.appendChild(opt);
+        });
+
+        document.getElementById("bulk-status-select").value = "done";
+        document.getElementById("bulk-start-date").value = formatFullDateKey(new Date());
+        document.getElementById("bulk-days-count").value = "5";
+
+        bulkModal.classList.add("active");
+    });
+
+    document.getElementById("bulk-modal-close-btn").addEventListener("click", () => {
+        bulkModal.classList.remove("active");
+    });
+
+    document.getElementById("bulk-apply-btn").addEventListener("click", () => {
+        const habitId = document.getElementById("bulk-habit-select").value;
+        const status = document.getElementById("bulk-status-select").value;
+        const startDateStr = document.getElementById("bulk-start-date").value;
+        const days = parseInt(document.getElementById("bulk-days-count").value, 10);
+
+        if (!habitId || !startDateStr || !days || days < 1) {
+            alert("Please pick a habit, a start date, and a valid number of days.");
+            return;
+        }
+
+        const startDate = new Date(`${startDateStr}T00:00:00`);
+        for (let i = 0; i < days; i++) {
+            const d = new Date(startDate);
+            d.setDate(d.getDate() + i);
+            const logKey = `${formatFullDateKey(d)}-${habitId}`;
+            if (status === "clear") {
+                delete state.logs[logKey];
+            } else {
+                state.logs[logKey] = status;
+            }
+        }
+
+        saveToLocalStorage();
+        renderApp();
+        bulkModal.classList.remove("active");
+        alert(`Updated ${days} day(s) as "${status}".`);
+    });
+
     // Modal Events
     const backupModal = document.getElementById("backup-modal");
     document.getElementById("backup-btn").addEventListener("click", () => {
@@ -737,6 +789,11 @@ function formatDateKey(date, day) {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const dayStr = String(day).padStart(2, "0");
     return `${year}-${month}-${dayStr}`;
+}
+
+// Date helper: Format YYYY-MM-DD directly from a Date's own year/month/day (crosses month/year boundaries safely)
+function formatFullDateKey(date) {
+    return formatDateKey(date, date.getDate());
 }
 
 // Calculate monthly completion rate for a specific habit (done=1, partial=0.5, exempt=no penalty)
